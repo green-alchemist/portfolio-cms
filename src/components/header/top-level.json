@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_header_top_levels",
+  "info": {
+    "displayName": "top-level",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "isSocial": {
+      "type": "boolean"
+    },
+    "path": {
+      "type": "string"
+    }
+  }
+}
