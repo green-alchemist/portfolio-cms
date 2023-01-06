@@ -13,10 +13,13 @@
   "pluginOptions": {},
   "attributes": {
     "body": {
-      "type": "richtext"
+      "type": "richtext",
+      "required": true
     },
     "title": {
-      "type": "string"
+      "type": "string",
+      "required": true,
+      "unique": true
     },
     "slug": {
       "type": "uid",
