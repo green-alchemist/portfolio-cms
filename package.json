@@ -9,13 +9,17 @@
     "build": "strapi build",
     "strapi": "strapi"
   },
-  "devDependencies": {},
   "dependencies": {
-    "@strapi/plugin-graphql": "4.5.5",
-    "@strapi/plugin-i18n": "4.5.5",
-    "@strapi/plugin-users-permissions": "4.5.5",
-    "@strapi/strapi": "4.5.5",
-    "pg": "8.6.0"
+    "@strapi/strapi": "4.20.2",
+    "@strapi/plugin-graphql": "4.20.2",
+    "@strapi/plugin-users-permissions": "4.20.2",
+    "@strapi/plugin-i18n": "4.20.2",
+    "@strapi/plugin-cloud": "4.20.2",
+    "pg": "8.8.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "5.3.4",
+    "styled-components": "5.3.3"
   },
   "author": {
     "name": "A Strapi developer"
@@ -24,7 +28,7 @@
     "uuid": "c6a2a35d-8c0f-40fd-8885-34beeca95236"
   },
   "engines": {
-    "node": ">=14.19.1 <=18.x.x",
+    "node": ">=14.19.1 <=20.x.x",
     "npm": ">=6.0.0"
   },
   "license": "MIT"
