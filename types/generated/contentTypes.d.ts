@@ -832,7 +832,6 @@ export interface ApiHeaderHeader extends Schema.SingleType {
   attributes: {
     title: Attribute.String;
     navigation: Attribute.Component<'header.top-level', true>;
-    nav: Attribute.DynamicZone<['header.top-level']>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

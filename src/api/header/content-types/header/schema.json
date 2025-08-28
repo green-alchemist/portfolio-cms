@@ -19,12 +19,6 @@
       "type": "component",
       "repeatable": true,
       "component": "header.top-level"
-    },
-    "nav": {
-      "type": "dynamiczone",
-      "components": [
-        "header.top-level"
-      ]
     }
   }
 }

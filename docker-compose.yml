@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   frontend:
     build:
@@ -13,7 +12,8 @@ services:
       - ../portfolio-gatsby:/app
       - /app/node_modules
     depends_on:
-      - strapi
+      strapi:
+        condition: service_healthy
     restart: on-failure
     networks:
       - strapi
