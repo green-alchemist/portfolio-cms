@@ -23,7 +23,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_CLIENT: ${DATABASE_CLIENT}
@@ -47,7 +46,7 @@ services:
       - strapiDB
     restart: unless-stopped
     healthcheck:
-      test: "wget --no-verbose --tries=1 --spider strapi:1337 || exit 1"
+      test: "wget --no-verbose --tries=1 --spider http://strapi:1337/admin || exit 1"
       interval: 30s
       timeout: 10s
       retries: 5
