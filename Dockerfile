@@ -3,7 +3,7 @@
 FROM node:20-alpine
 
 # Installing build dependencies for sharp
-RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev nasm bash vips-dev git
+RUN apk update && apk add --no-cache curl build-base gcc autoconf automake zlib-dev libpng-dev nasm bash vips-dev git
 
 ARG NODE_ENV=development
 ENV NODE_ENV=${NODE_ENV}
