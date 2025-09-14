@@ -46,10 +46,11 @@ services:
       - strapiDB
     restart: unless-stopped
     healthcheck:
-      test: "wget --no-verbose --tries=1 --spider http://strapi:1337/admin || exit 1"
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:1337/admin"]
+      interval: 15s
+      timeout: 15s
       retries: 5
+      start_period: 30s
 
   strapiDB:
     container_name: strapiDB

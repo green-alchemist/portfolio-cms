@@ -1,21 +1,21 @@
-import type { Schema, Attribute } from '@strapi/strapi';
+import type { Schema, Struct } from '@strapi/strapi';
 
-export interface HeaderTopLevel extends Schema.Component {
+export interface HeaderTopLevel extends Struct.ComponentSchema {
   collectionName: 'components_header_top_levels';
   info: {
-    displayName: 'top-level';
     description: '';
+    displayName: 'top-level';
   };
   attributes: {
-    title: Attribute.String;
-    isSocial: Attribute.Boolean;
-    path: Attribute.String;
+    isSocial: Schema.Attribute.Boolean;
+    path: Schema.Attribute.String;
+    title: Schema.Attribute.String;
   };
 }
 
-declare module '@strapi/types' {
-  export module Shared {
-    export interface Components {
+declare module '@strapi/strapi' {
+  export module Public {
+    export interface ComponentSchemas {
       'header.top-level': HeaderTopLevel;
     }
   }
