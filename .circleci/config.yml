@@ -1,48 +1,50 @@
 version: 2.1
 
-anchors:
-  context: &context
-    context: slack-notify
-
-  filter_stage: &filter_stage
-    filters:
-      branches:
-        only: ci-test
-
 orbs:
+  aws-cli: circleci/aws-cli@3.1.1
   aws-ecr: circleci/aws-ecr@8.2.1
-  # aws-ecs: circleci/aws-ecs@03.2.0
-  slack: circleci/slack@4.12.0
-
-commands:
-  notify_slack_error:
-    steps:
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-
-  notify_slack_pass:
-    steps:
-      - slack/notify:
-          event: pass
-          template: basic_success_1
+  terraform: circleci/terraform@3.2.0
 
 jobs:
-  test-config:
+  build_and_deploy:
     docker:
-      - image: cimg/base:2023.02
+      - image: cimg/base:stable
     steps:
-      - checkout
-      # Whatever you want to do
-      - run: sudo apt-get update
-      - run: echo $CIRCLE_SHA1
+      - checkout # Checks out the Strapi code
+      - aws-cli/setup:
+          role_arn: ${AWS_OIDC_ROLE_ARN}
+      - add_ssh_keys
+      
+      # Step 1: Get the ECR repository URL from Terraform state
+      - run:
+          name: "Get ECR URL"
+          command: |
+            mkdir -p /tmp/tf-outputs
+            git clone git@github.com:green-alchemist/terraform-services.git /tmp/tf-outputs
+            cd /tmp/tf-outputs
+            
+            terraform init -backend-config="environments/staging/strapi-admin/backend.tfvars"
+            ECR_URL=$(terraform output -json ecr_registries | jq -r '.[0]')
+            echo "export ECR_REPOSITORY_URL=${ECR_URL}" >> $BASH_ENV
+      
+      # Step 2: Build and Push the Docker image to ECR
+      - aws-ecr/build-and-push-image:
+          repo: "${ECR_REPOSITORY_URL}"
+          tag: "${CIRCLE_SHA1}"
+
+      # Step 3: Force a new deployment in the Fargate service
+      - run:
+          name: "Deploy to Fargate"
+          command: |
+            aws ecs update-service --cluster strapi-admin-cluster \
+              --service strapi-admin-service \
+              --force-new-deployment
 
 workflows:
-  build-and-deploy:
+  deploy:
     jobs:
-      - test-config
-      # - aws-ecr/build-and-push-image:
-      #     repo: "${AWS_RESOURCE_NAME_PREFIX}"
-      #     tag: "${CIRCLE_SHA1}"
-
-# VS Code Extension Version: 1.5.1
+      - build_and_deploy:
+          filters:
+            branches:
+              only:
+                - main
