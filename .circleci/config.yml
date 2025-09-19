@@ -11,6 +11,11 @@ anchors:
       - circleci-secrets
 jobs:
   build_and_deploy:
+    parameters:
+      environment:
+        type: enum
+        enum: ["staging", "production"]
+        description: "The deployment environment (staging or production)."
     docker:
       - image: cimg/base:stable
     steps:
@@ -24,49 +29,50 @@ jobs:
       - run:
           name: "Get ECR URL from Parameter Store"
           command: |
-            PARAMETER_PATH="/strapi/staging"
-            echo "Fetching all parameters under path: ${PARAMETER_PATH}"
-            
-            # Fetch all parameters under the specified path in JSON format
-            PARAMETERS_JSON=$(aws ssm get-parameters-by-path --path "${PARAMETER_PATH}" --query "Parameters" --output json)
-            
-            if [ -z "$PARAMETERS_JSON" ] || [ "$PARAMETERS_JSON" == "[]" ]; then
-              echo "Failed to retrieve any parameters from path: ${PARAMETER_PATH}"
-              exit 1
-            fi
+            INFRA_PATH="/strapi/<< parameters.environment >>"
+            ENV_PATH="/strapi/<< parameters.environment >>/env"
 
-            # Use jq to parse the JSON and extract the values.
-            # This is more robust than multiple individual calls.
-            ECR_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
+            echo "Fetching infrastructure parameters from path: ${INFRA_PATH}"
+            INFRA_PARAMS=$(aws ssm get-parameters-by-path --path "${INFRA_PATH}" --query "Parameters" --with-decryption)
+            
+            # Extract infrastructure details
             DB_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
-            AWS_ECS_CLUSTER_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecs-cluster-name")) | .Value')
-            AWS_ECS_SERVICE_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecs-service-name")) | .Value')
-            
-            if [ -z "$ECR_URL" ] || [ -z "$DB_URL" ] || [ -z "$AWS_ECS_CLUSTER_NAME" ] || [ -z "$AWS_ECS_SERVICE_NAME" ]; then
-              echo "One or more required parameters (ecr_url) were not found in SSM."
+            ECR_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
+            AWS_ECS_CLUSTER_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_cluster_name")) | .Value')
+            AWS_ECS_SERVICE_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_service_name")) | .Value')
+
+            if [ -z "$ECR_URL" ] || [ -z "$CLUSTER_NAME" ] || [ -z "$SERVICE_NAME" ]; then
+              echo "One or more required infrastructure parameters were not found in SSM."
               exit 1
             fi
             
-            echo "Parameters successfully retrieved."
-
-            # The aws-ecr orb expects the repo name, not the full URL. We extract it.
             ECR_REPO_NAME=$(echo "${ECR_URL}" | cut -d'/' -f2)
             
-            # Export the variables for use in subsequent steps
             echo "export ECR_REPOSITORY_NAME=${ECR_REPO_NAME}" >> $BASH_ENV
+            echo "export DB_URL=${DB_URL}" >> $BASH_ENV
+            echo "export AWS_ECS_CLUSTER_NAME=${AWS_ECS_CLUSTER_NAME}" >> $BASH_ENV
+            echo "export AWS_ECS_SERVICE_NAME=${AWS_ECS_SERVICE_NAME}" >> $BASH_ENV
+            
+            echo "Fetching application secrets from path: ${ENV_PATH}"
+            ENV_PARAMS=$(aws ssm get-parameters-by-path --path "${ENV_PATH}" --query "Parameters" --with-decryption)
+
+            # Create the .env file from application secrets
+            echo "Creating .env file..."
+            echo "$ENV_PARAMS" | jq -r '.[] | .Name |= sub("^(.*)/"; "") | "\(.Name)=\(.Value)"' > .env
+            
+            echo ".env file created with the following keys:"
+            cut -d'=' -f1 .env
             
       # Step 2: Build and Push the Docker image to ECR
       - aws-ecr/build-and-push-image:
           # The aws-ecr orb constructs the full URL from the repo name and AWS account details
           repo: "${ECR_REPOSITORY_NAME}"
-          tag: "${CIRCLE_SHA1}"
+          tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
 
       # Step 3: Force a new deployment in the Fargate service
       - run:
           name: "Deploy to Fargate"
           command: |
-            # These values should be stored as CircleCI environment variables
-            # for security and flexibility.
             aws ecs update-service --cluster ${AWS_ECS_CLUSTER_NAME} \
               --service ${AWS_ECS_SERVICE_NAME} \
               --force-new-deployment
@@ -75,9 +81,19 @@ workflows:
   deploy:
     jobs:
       - build_and_deploy:
-          # This context should contain your AWS OIDC Role ARN and other secrets
+          name: deploy-staging
+          environment: staging
           <<: *context
           filters:
             branches:
               only:
-                - kyle
+                - kyle 
+
+      - build_and_deploy:
+          name: deploy-production
+          environment: production
+          <<: *context
+          filters:
+            branches:
+              only:
+                - master 
