@@ -38,8 +38,9 @@ jobs:
             # Use jq to parse the JSON and extract the values.
             # This is more robust than multiple individual calls.
             ECR_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
+            DB_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
             
-            if [ -z "$ECR_URL" ] || [ -z "$CLUSTER_NAME" ] || [ -z "$SERVICE_NAME" ]; then
+            if [ -z "$ECR_URL" ] || [ -z "$DB_URL" ]; then
               echo "One or more required parameters (ecr_url) were not found in SSM."
               exit 1
             fi
@@ -51,8 +52,6 @@ jobs:
             
             # Export the variables for use in subsequent steps
             echo "export ECR_REPOSITORY_NAME=${ECR_REPO_NAME}" >> $BASH_ENV
-            echo "export AWS_ECS_CLUSTER_NAME=${CLUSTER_NAME}" >> $BASH_ENV
-            echo "export AWS_ECS_SERVICE_NAME=${SERVICE_NAME}" >> $BASH_ENV
             
       # Step 2: Build and Push the Docker image to ECR
       - aws-ecr/build-and-push-image:
