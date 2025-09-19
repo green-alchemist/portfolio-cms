@@ -3,47 +3,79 @@ version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@3.1.1
   aws-ecr: circleci/aws-ecr@8.2.1
-  terraform: circleci/terraform@3.7.0
-
+  # Terraform orb is no longer needed in this pipeline
+  # terraform: circleci/terraform@3.7.0
+anchors:
+  - &context
+    context:
+      - circleci-secrets
 jobs:
   build_and_deploy:
     docker:
       - image: cimg/base:stable
     steps:
       - checkout # Checks out the Strapi code
+
+      # Assume OIDC is configured in CircleCI Contexts
       - aws-cli/setup:
           role-arn: ${AWS_OIDC_ROLE_ARN}
-      - add_ssh_keys
       
-      # Step 1: Get the ECR repository URL from Terraform state
+      # Step 1: Get the ECR repository URL from AWS Parameter Store
       - run:
-          name: "Get ECR URL"
+          name: "Get ECR URL from Parameter Store"
           command: |
-            mkdir -p /tmp/tf-outputs
-            git clone git@github.com:green-alchemist/terraform-services.git /tmp/tf-outputs
-            cd /tmp/tf-outputs
+            PARAMETER_PATH="/strapi/staging"
+            echo "Fetching all parameters under path: ${PARAMETER_PATH}"
             
-            terraform init -backend-config="environments/staging/strapi-admin/backend.tfvars"
-            ECR_URL=$(terraform output -json ecr_registries | jq -r '.[0]')
-            echo "export ECR_REPOSITORY_URL=${ECR_URL}" >> $BASH_ENV
-      
+            # Fetch all parameters under the specified path in JSON format
+            PARAMETERS_JSON=$(aws ssm get-parameters-by-path --path "${PARAMETER_PATH}" --query "Parameters" --output json)
+            
+            if [ -z "$PARAMETERS_JSON" ] || [ "$PARAMETERS_JSON" == "[]" ]; then
+              echo "Failed to retrieve any parameters from path: ${PARAMETER_PATH}"
+              exit 1
+            fi
+
+            # Use jq to parse the JSON and extract the values.
+            # This is more robust than multiple individual calls.
+            ECR_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
+            
+            if [ -z "$ECR_URL" ] || [ -z "$CLUSTER_NAME" ] || [ -z "$SERVICE_NAME" ]; then
+              echo "One or more required parameters (ecr_url) were not found in SSM."
+              exit 1
+            fi
+            
+            echo "Parameters successfully retrieved."
+
+            # The aws-ecr orb expects the repo name, not the full URL. We extract it.
+            ECR_REPO_NAME=$(echo "${ECR_URL}" | cut -d'/' -f2)
+            
+            # Export the variables for use in subsequent steps
+            echo "export ECR_REPOSITORY_NAME=${ECR_REPO_NAME}" >> $BASH_ENV
+            echo "export AWS_ECS_CLUSTER_NAME=${CLUSTER_NAME}" >> $BASH_ENV
+            echo "export AWS_ECS_SERVICE_NAME=${SERVICE_NAME}" >> $BASH_ENV
+            
       # Step 2: Build and Push the Docker image to ECR
       - aws-ecr/build-and-push-image:
-          repo: "${ECR_REPOSITORY_URL}"
+          # The aws-ecr orb constructs the full URL from the repo name and AWS account details
+          repo: "${ECR_REPOSITORY_NAME}"
           tag: "${CIRCLE_SHA1}"
 
       # Step 3: Force a new deployment in the Fargate service
       - run:
           name: "Deploy to Fargate"
           command: |
-            aws ecs update-service --cluster strapi-admin-cluster \
-              --service strapi-admin-service \
+            # These values should be stored as CircleCI environment variables
+            # for security and flexibility.
+            aws ecs update-service --cluster ${AWS_ECS_CLUSTER_NAME} \
+              --service ${AWS_ECS_SERVICE_NAME} \
               --force-new-deployment
 
 workflows:
   deploy:
     jobs:
       - build_and_deploy:
+          # This context should contain your AWS OIDC Role ARN and other secrets
+          <<: *context
           filters:
             branches:
               only:
