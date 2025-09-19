@@ -39,8 +39,10 @@ jobs:
             # This is more robust than multiple individual calls.
             ECR_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
             DB_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
+            AWS_ECS_CLUSTER_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecs-cluster-name")) | .Value')
+            AWS_ECS_SERVICE_NAME=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/ecs-service-name")) | .Value')
             
-            if [ -z "$ECR_URL" ] || [ -z "$DB_URL" ]; then
+            if [ -z "$ECR_URL" ] || [ -z "$DB_URL" ] || [ -z "$AWS_ECS_CLUSTER_NAME" ] || [ -z "$AWS_ECS_SERVICE_NAME" ]; then
               echo "One or more required parameters (ecr_url) were not found in SSM."
               exit 1
             fi
