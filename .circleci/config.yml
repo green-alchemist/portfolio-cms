@@ -5,7 +5,10 @@ orbs:
   aws-ecr: circleci/aws-ecr@8.2.1
   # Terraform orb is no longer needed in this pipeline
   # terraform: circleci/terraform@3.7.0
-
+anchors:
+  - &context
+    context:
+      - circleci-secrets
 jobs:
   build_and_deploy:
     docker:
@@ -72,7 +75,7 @@ workflows:
     jobs:
       - build_and_deploy:
           # This context should contain your AWS OIDC Role ARN and other secrets
-          context: aws-oidc
+          <<: *context
           filters:
             branches:
               only:
