@@ -80,17 +80,15 @@ jobs:
             echo "export AWS_ACCOUNT_ID=${ACCOUNT_ID}" >> $BASH_ENV
             echo "Successfully fetched AWS Account ID: ${ACCOUNT_ID}"
       - aws-ecr/build_and_push_image:
-          name: build-and-push-staging
           auth:
             - aws-cli/setup:
               role_arn: ${AWS_OIDC_ROLE_ARN}
-          context: *context # Pass context for env vars
+          <<: *context # Pass context for env vars
           account_id: ${AWS_ACCOUNT_ID} # Ensure this is in your context
           region: ${AWS_DEFAULT_REGION}
           repo: "strapi-admin-<< parameters.environment >>"
           tag: "latest-<< parameters.environment >>,<< pipeline.git.revision >>"
           dockerfile: "Dockerfile.prod"
-          workspace_path: "workspace" # Tell the job where to find the Dockerfile and .env
 
 
       # Step 3: Force a new deployment in the Fargate service
