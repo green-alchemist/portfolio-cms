@@ -37,14 +37,14 @@ jobs:
             INFRA_PARAMS=$(aws ssm get-parameters-by-path --path "${INFRA_PATH}" --query "Parameters" --with-decryption)
             
             # Extract infrastructure details
-            DB_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
+            # DB_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
             ECR_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
             AWS_ECS_CLUSTER_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_cluster_name")) | .Value')
             AWS_ECS_SERVICE_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_service_name")) | .Value')
 
             if [ -z "$ECR_URL" ] || [ -z "$CLUSTER_NAME" ] || [ -z "$SERVICE_NAME" ]; then
               echo "One or more required infrastructure parameters were not found in SSM."
-              echo $DB_URL
+              echo $ECR_URL
               echo $INFRA_PARAMS
               exit 1
             fi
@@ -52,7 +52,7 @@ jobs:
             ECR_REPO_NAME=$(echo "${ECR_URL}" | cut -d'/' -f2)
             
             echo "export ECR_REPOSITORY_NAME=${ECR_REPO_NAME}" >> $BASH_ENV
-            echo "export DB_URL=${DB_URL}" >> $BASH_ENV
+            # echo "export DB_URL=${DB_URL}" >> $BASH_ENV
             echo "export AWS_ECS_CLUSTER_NAME=${AWS_ECS_CLUSTER_NAME}" >> $BASH_ENV
             echo "export AWS_ECS_SERVICE_NAME=${AWS_ECS_SERVICE_NAME}" >> $BASH_ENV
             
