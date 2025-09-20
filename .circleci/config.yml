@@ -44,6 +44,8 @@ jobs:
 
             if [ -z "$ECR_URL" ] || [ -z "$CLUSTER_NAME" ] || [ -z "$SERVICE_NAME" ]; then
               echo "One or more required infrastructure parameters were not found in SSM."
+              echo $DB_URL
+              echo $INFRA_PARAMS
               exit 1
             fi
             
