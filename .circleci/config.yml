@@ -84,8 +84,8 @@ jobs:
       - aws-ecr/build-and-push-image:
           auth:
             - aws-cli/setup:
-                aws-region: AWS_DEFAULT_REGION
-                role-arn: ${AWS_OIDC_ROLE_ARN}
+                aws_region: AWS_DEFAULT_REGION
+                role_arn: ${AWS_OIDC_ROLE_ARN}
           region: AWS_DEFAULT_REGION
           registry-id: AWS_ACCOUNT_ID
           repo: "${ECR_REPOSITORY_NAME}"
