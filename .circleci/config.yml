@@ -79,7 +79,8 @@ jobs:
             # Export the Account ID as an environment variable for the next steps
             echo "export AWS_ACCOUNT_ID=${ACCOUNT_ID}" >> $BASH_ENV
             echo "Successfully fetched AWS Account ID: ${ACCOUNT_ID}"
-      
+      - aws-ecr/ecr-login:
+          registry-id: AWS_ACCOUNT_ID
       - aws-ecr/build-and-push-image:
           registry-id: AWS_ACCOUNT_ID
           aws-region: AWS_DEFAULT_REGION
