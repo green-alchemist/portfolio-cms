@@ -83,7 +83,6 @@ jobs:
           registry-id: AWS_ACCOUNT_ID
       - aws-ecr/build-and-push-image:
           registry-id: AWS_ACCOUNT_ID
-          aws-region: AWS_DEFAULT_REGION
           repo: "${ECR_REPOSITORY_NAME}"
           tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
           dockerfile: "Dockerfile.prod"
