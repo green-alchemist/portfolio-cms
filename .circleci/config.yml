@@ -87,7 +87,6 @@ jobs:
           repo: "${ECR_REPOSITORY_NAME}"
           tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
           dockerfile: "Dockerfile.prod"
-          no-output-timeout: "20m"
 
       # Step 3: Force a new deployment in the Fargate service
       - run:
