@@ -44,8 +44,6 @@ jobs:
 
             if [ -z "$ECR_URL" ] || [ -z "$AWS_ECS_CLUSTER_NAME" ] || [ -z "$AWS_ECS_SERVICE_NAME" ]; then
               echo "One or more required infrastructure parameters were not found in SSM."
-              echo $ECR_URL
-              echo $INFRA_PARAMS
               exit 1
             fi
             
@@ -84,9 +82,11 @@ jobs:
       
       - aws-ecr/build-and-push-image:
           registry-id: AWS_ACCOUNT_ID
+          aws-region: AWS_DEFAULT_REGION
           repo: "${ECR_REPOSITORY_NAME}"
           tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
           dockerfile: "Dockerfile.prod"
+          no-output-timeout: "20m"
 
       # Step 3: Force a new deployment in the Fargate service
       - run:
