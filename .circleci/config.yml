@@ -29,7 +29,7 @@ jobs:
       - run:
           name: "Get ECR URL from Parameter Store"
           command: |
-            INFRA_PATH="/strapi/<< parameters.environment >>"
+            INFRA_PATH="/strapi/<< parameters.environment >>/"
             ENV_PATH="/strapi/<< parameters.environment >>/env"
 
             echo "Fetching infrastructure parameters from path: ${INFRA_PATH}"
