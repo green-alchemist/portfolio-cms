@@ -19,6 +19,8 @@ jobs:
     docker:
       - image: cimg/base:stable
     steps:
+      - setup_remote_docker:
+          version: 20.10.18
       - checkout # Checks out the Strapi code
 
       # Assume OIDC is configured in CircleCI Contexts
