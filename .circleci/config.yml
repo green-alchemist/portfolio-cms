@@ -81,6 +81,9 @@ jobs:
             echo "Successfully fetched AWS Account ID: ${ACCOUNT_ID}"
       - aws-ecr/build_and_push_image:
           name: build-and-push-staging
+          auth:
+            - aws-cli/setup:
+              role_arn: ${AWS_OIDC_ROLE_ARN}
           context: *context # Pass context for env vars
           account_id: ${AWS_ACCOUNT_ID} # Ensure this is in your context
           region: ${AWS_DEFAULT_REGION}
