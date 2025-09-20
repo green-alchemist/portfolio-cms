@@ -82,6 +82,10 @@ jobs:
       - aws-ecr/ecr-login:
           registry-id: AWS_ACCOUNT_ID
       - aws-ecr/build-and-push-image:
+          auth:
+            - aws-cli/setup:
+                aws-region: AWS_DEFAULT_REGION
+                role-arn: ${AWS_OIDC_ROLE_ARN}
           registry-id: AWS_ACCOUNT_ID
           repo: "${ECR_REPOSITORY_NAME}"
           tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
