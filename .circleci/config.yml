@@ -16,8 +16,7 @@ jobs:
         type: enum
         enum: ["staging", "production"]
         description: "The deployment environment (staging or production)."
-    docker:
-      - image: cimg/base:stable
+    machine: true
     steps:
       - setup_remote_docker
 
