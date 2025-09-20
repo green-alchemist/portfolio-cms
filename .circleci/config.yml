@@ -23,6 +23,7 @@ jobs:
 
       # Assume OIDC is configured in CircleCI Contexts
       - aws-cli/setup:
+          aws-region: "us-east-1"
           role-arn: ${AWS_OIDC_ROLE_ARN}
       
       # Step 1: Get the ECR repository URL from AWS Parameter Store
