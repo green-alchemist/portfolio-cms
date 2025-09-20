@@ -16,7 +16,8 @@ jobs:
         type: enum
         enum: ["staging", "production"]
         description: "The deployment environment (staging or production)."
-    machine: true
+    docker:
+      - image: cimg/base:stable
     steps:
       - setup_remote_docker
 
@@ -79,13 +80,15 @@ jobs:
             echo "export AWS_ACCOUNT_ID=${ACCOUNT_ID}" >> $BASH_ENV
             echo "Successfully fetched AWS Account ID: ${ACCOUNT_ID}"
       - aws-ecr/build_and_push_image:
-          auth:
-            - aws-cli/setup:
-                role_arn: ${AWS_OIDC_ROLE_ARN}
-          region: AWS_DEFAULT_REGION
-          repo: "${ECR_REPOSITORY_NAME}"
-          tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
+          name: build-and-push-staging
+          context: *context # Pass context for env vars
+          account_id: ${AWS_ACCOUNT_ID} # Ensure this is in your context
+          region: ${AWS_DEFAULT_REGION}
+          repo: "strapi-admin-<< parameters.environment >>"
+          tag: "latest-<< parameters.environment >>,<< pipeline.git.revision >>"
           dockerfile: "Dockerfile.prod"
+          workspace_path: "workspace" # Tell the job where to find the Dockerfile and .env
+
 
       # Step 3: Force a new deployment in the Fargate service
       - run:
