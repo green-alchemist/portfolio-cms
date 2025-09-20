@@ -83,8 +83,7 @@ jobs:
           auth:
             - aws-cli/setup:
               role_arn: ${AWS_OIDC_ROLE_ARN}
-          <<: *context # Pass context for env vars
-          account_id: ${AWS_ACCOUNT_ID} # Ensure this is in your context
+          account_id: ${AWS_ACCOUNT_ID}
           region: ${AWS_DEFAULT_REGION}
           repo: "strapi-admin-<< parameters.environment >>"
           tag: "latest-<< parameters.environment >>,<< pipeline.git.revision >>"
