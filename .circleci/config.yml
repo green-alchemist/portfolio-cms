@@ -37,7 +37,7 @@ jobs:
             INFRA_PARAMS=$(aws ssm get-parameters-by-path --path "${INFRA_PATH}" --query "Parameters" --with-decryption)
             
             # Extract infrastructure details
-            DB_URL=$(echo "$PARAMETERS_JSON" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
+            DB_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
             ECR_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
             AWS_ECS_CLUSTER_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_cluster_name")) | .Value')
             AWS_ECS_SERVICE_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_service_name")) | .Value')
