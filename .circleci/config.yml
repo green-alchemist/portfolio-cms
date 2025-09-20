@@ -66,11 +66,27 @@ jobs:
             echo ".env file created with the following keys:"
             cut -d'=' -f1 .env
             
-      # Step 2: Build and Push the Docker image to ECR
+      - run:
+          name: "Dynamically Fetch AWS Account ID"
+          command: |
+            # Get the caller identity from AWS and parse the Account ID with jq
+            ACCOUNT_ID=$(aws sts get-caller-identity | jq -r '.Account')
+            
+            # Check if the Account ID was successfully fetched
+            if [ -z "$ACCOUNT_ID" ]; then
+              echo "Failed to get AWS Account ID."
+              exit 1
+            fi
+            
+            # Export the Account ID as an environment variable for the next steps
+            echo "export AWS_ACCOUNT_ID=${ACCOUNT_ID}" >> $BASH_ENV
+            echo "Successfully fetched AWS Account ID: ${ACCOUNT_ID}"
+      
       - aws-ecr/build-and-push-image:
           # The aws-ecr orb constructs the full URL from the repo name and AWS account details
           repo: "${ECR_REPOSITORY_NAME}"
           tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
+          dockerfile: "Dockerfile.prod"
 
       # Step 3: Force a new deployment in the Fargate service
       - run:
