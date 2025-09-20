@@ -83,7 +83,6 @@ jobs:
             - aws-cli/setup:
                 role_arn: ${AWS_OIDC_ROLE_ARN}
           region: AWS_DEFAULT_REGION
-          registry-id: AWS_ACCOUNT_ID
           repo: "${ECR_REPOSITORY_NAME}"
           tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
           dockerfile: "Dockerfile.prod"
