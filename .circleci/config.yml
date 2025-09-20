@@ -83,7 +83,7 @@ jobs:
             echo "Successfully fetched AWS Account ID: ${ACCOUNT_ID}"
       
       - aws-ecr/build-and-push-image:
-          # The aws-ecr orb constructs the full URL from the repo name and AWS account details
+          registry-id: AWS_ACCOUNT_ID
           repo: "${ECR_REPOSITORY_NAME}"
           tag: "latest-<< parameters.environment >>-${CIRCLE_SHA1}"
           dockerfile: "Dockerfile.prod"
