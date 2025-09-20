@@ -38,9 +38,9 @@ jobs:
             
             # Extract infrastructure details
             # DB_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/db_url")) | .Value')
-            ECR_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecr_url")) | .Value')
-            AWS_ECS_CLUSTER_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_cluster_name")) | .Value')
-            AWS_ECS_SERVICE_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs_service_name")) | .Value')
+            ECR_URL=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecr-url")) | .Value')
+            AWS_ECS_CLUSTER_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs-cluster-name")) | .Value')
+            AWS_ECS_SERVICE_NAME=$(echo "$INFRA_PARAMS" | jq -r '.[] | select(.Name | endswith("/ecs-service-name")) | .Value')
 
             if [ -z "$ECR_URL" ] || [ -z "$AWS_ECS_CLUSTER_NAME" ] || [ -z "$AWS_ECS_SERVICE_NAME" ]; then
               echo "One or more required infrastructure parameters were not found in SSM."
