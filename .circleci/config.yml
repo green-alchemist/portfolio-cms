@@ -61,8 +61,8 @@ jobs:
             echo "Creating .env file..."
             # echo "$ENV_PARAMS" | jq -r '.[] | .Name |= sub("^(.*)/"; "") | "\(.Name)=\(.Value)"' > .env
             
-            echo ".env file created with the following keys:"
-            cut -d'=' -f1 .env
+            # echo ".env file created with the following keys:"
+            # cut -d'=' -f1 .env
             
       - run:
           name: "Dynamically Fetch AWS Account ID"
