@@ -86,7 +86,7 @@ jobs:
           account_id: ${AWS_ACCOUNT_ID}
           region: ${AWS_DEFAULT_REGION}
           repo: "strapi-admin-<< parameters.environment >>"
-          tag: "latest-<< parameters.environment >>,<< pipeline.git.revision >>"
+          tag: "latest,<< pipeline.git.revision >>"
           dockerfile: "Dockerfile.prod"
 
 
