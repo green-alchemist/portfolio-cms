@@ -55,11 +55,11 @@ jobs:
             echo "export AWS_ECS_SERVICE_NAME=${AWS_ECS_SERVICE_NAME}" >> $BASH_ENV
             
             echo "Fetching application secrets from path: ${ENV_PATH}"
-            ENV_PARAMS=$(aws ssm get-parameters-by-path --path "${ENV_PATH}" --query "Parameters" --with-decryption)
+            # ENV_PARAMS=$(aws ssm get-parameters-by-path --path "${ENV_PATH}" --query "Parameters" --with-decryption)
 
             # Create the .env file from application secrets
             echo "Creating .env file..."
-            echo "$ENV_PARAMS" | jq -r '.[] | .Name |= sub("^(.*)/"; "") | "\(.Name)=\(.Value)"' > .env
+            # echo "$ENV_PARAMS" | jq -r '.[] | .Name |= sub("^(.*)/"; "") | "\(.Name)=\(.Value)"' > .env
             
             echo ".env file created with the following keys:"
             cut -d'=' -f1 .env
