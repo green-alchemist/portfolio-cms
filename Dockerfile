@@ -1,6 +1,6 @@
 
 # Strapi Dockerfile
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Installing build dependencies for sharp
 RUN apk update && apk add --no-cache curl build-base gcc autoconf automake zlib-dev libpng-dev nasm bash vips-dev git
