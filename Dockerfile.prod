@@ -1,50 +1,27 @@
-# STAGE 1: The Builder
-# This stage installs all dependencies (including devDependencies) and builds the Strapi application.
 FROM node:22-alpine AS build
-RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev git
-
+RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev git > /dev/null 2>&1
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /opt/
-
-# Copy package files and install ALL dependencies (not just production)
-# This is necessary for the build step.
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
-
+RUN yarn global add node-gyp
+RUN yarn config set network-timeout 600000 -g && yarn install --production
 ENV PATH=/opt/node_modules/.bin:$PATH
-
 WORKDIR /opt/app
-
-# Copy the rest of your project source code
 COPY . .
-
-# Build the Strapi admin panel and compile TS to JS
 RUN yarn build
 
-# STAGE 2: The Runner
-# This is the final, lightweight image.
 FROM node:22-alpine
 RUN apk add --no-cache vips-dev
-
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
+ENV NODE_ENV=production
 WORKDIR /opt/
-
-# Copy the built node_modules from the 'build' stage
 COPY --from=build /opt/node_modules ./node_modules
-
 WORKDIR /opt/app
-
-# Copy the built application artifacts from the 'build' stage
 COPY --from=build /opt/app ./
-
 ENV PATH=/opt/node_modules/.bin:$PATH
 
-# Expose the port Strapi runs on
+RUN chown -R node:node /opt/app
+USER node
 EXPOSE 1337
-
-# The command to start the optimized Strapi server
 CMD ["yarn", "start"]
